@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>batchimageproc</title>
+    <link rel="stylesheet" href="./style.css">
+  </head>
+  <body>
+    <div id="settingsContainer">
+      <h1>Batch image processing</h1>
+      <ol>
+        <li><button type="button" id="folderButton">Pick folder</button></li>
+        <li>
+          <input type="checkbox" id="resizeCheckbox" name="resizeCheckbox" checked>
+          <label for="resizeCheckbox">Resize images</label>
+          to a maximum size of <input type="number" id="resizeInput" min="10" max="10000" value="1600"> pixels
+        </li>
+        <li>
+          <input type="checkbox" id="dateTimeCheckbox" name="dateTimeCheckbox" checked>
+          <label for="dateTimeCheckbox">Add date and time</label>
+        </li>
+        <li>
+          <input type="checkbox" id="reProcessCheckbox" name="reProcessCheckbox">
+          <label for="reProcessCheckbox">Re-process images that were already changed by this app</label>
+        </li>
+        <li><button type="button" id="startButton" disabled>Start</button></li>
+      </ol>
+    </div>
+    <div id="logContainer">
+      <h1>Log</h1>
+      <p><textarea id="logArea" rows="10" style="width: 90%;" disabled></textarea></p>
+    </div>
+    <script src="./html2canvas.min.js"></script>
+    <script src="./renderer.js"></script>
+  </body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "name": "batchimageproc",
+  "version": "1.0.0",
+  "description": "Electron app for batch image processing",
+  "main": "app/main.js",
+  "scripts": {
+    "start": "electron --inspect=5858 .",
+    "dist": "electron-builder --win portable"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kachurovskiy/batchimageproc.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kachurovskiy/batchimageproc/issues"
+  },
+  "homepage": "https://github.com/kachurovskiy/batchimageproc#readme",
+  "dependencies": {
+    "exif-reader": "^1.0.3",
+    "sharp": "^0.29.3",
+    "yarn": "^1.22.17"
+  },
+  "devDependencies": {
+    "electron": "^16.0.5",
+    "electron-builder": "^22.14.5",
+    "electron-rebuild": "^3.2.5"
+  }
+}
