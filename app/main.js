@@ -13,7 +13,7 @@ let working = false;
 app.whenReady().then(() => {
   win = new BrowserWindow({
     width: 800,
-    height: 700,
+    height: 800,
     webPreferences: {preload: path.join(__dirname, "preload.js")}
   });
   win.loadFile('app/index.html');

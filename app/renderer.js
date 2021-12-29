@@ -7,6 +7,7 @@ const resizeInput = document.getElementById('resizeInput');
 const dateTimeCheckbox = document.getElementById('dateTimeCheckbox');
 const invisibleContainer = document.getElementById('invisibleContainer');
 const dateTimeColor = document.getElementById('dateTimeColor');
+const dateTimeFontSizeInput = document.getElementById('dateTimeFontSizeInput');
 
 logContainer.style.display = 'none';
 
@@ -43,8 +44,8 @@ function log(message) {
 window.api.ipcRendererOn('proc-text-to-png', async (event, message) => {
   const element = document.createElement('div');
   element.style.color = dateTimeColor.value;
-  element.style.width = '200px';
   element.style.fontFamily = 'Verdana';
+  element.style.fontSize = dateTimeFontSizeInput.value + 'px';
   element.style.textAlign = 'right';
   element.style.padding = '6px';
   element.innerText = String(message);

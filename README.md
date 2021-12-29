@@ -1,6 +1,6 @@
 # batchimageproc
 
-[Download EXE file](https://github.com/kachurovskiy/batchimageproc/raw/main/batchimageproc%201.0.2.exe)
+[Download EXE file](https://github.com/kachurovskiy/batchimageproc/raw/main/batchimageproc%201.0.3.exe)
 
 Electron app for batch image processing. Designed for a very specific purpose of resizing, baking in EXIF rotation and creation date/time - but can be easily modified to have more features.
 
