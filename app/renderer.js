@@ -5,6 +5,7 @@ const logContainer = document.getElementById('logContainer');
 const resizeCheckbox = document.getElementById('resizeCheckbox');
 const resizeInput = document.getElementById('resizeInput');
 const dateTimeCheckbox = document.getElementById('dateTimeCheckbox');
+const invisibleContainer = document.getElementById('invisibleContainer');
 
 logContainer.style.display = 'none';
 
@@ -14,7 +15,9 @@ folderButton.addEventListener('click', () => {
 
 window.api.ipcRendererOn('proc-dir-change', (event, message) => {
   folderButton.innerText = message.dir + ' (' + message.fileCount + ' images)';
-  delete startButton.removeAttribute('disabled');
+  if (message.fileCount) {
+    delete startButton.removeAttribute('disabled');
+  }
 });
 
 startButton.addEventListener('click', () => {
@@ -44,7 +47,7 @@ window.api.ipcRendererOn('proc-text-to-png', async (event, message) => {
   element.style.textAlign = 'right';
   element.style.padding = '6px';
   element.innerText = String(message);
-  document.body.appendChild(element);
+  invisibleContainer.appendChild(element);
   const canvas = await html2canvas(element, {backgroundColor: null});
   element.remove();
   canvas.toBlob(async (blob) => {

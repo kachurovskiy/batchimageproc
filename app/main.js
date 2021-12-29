@@ -12,8 +12,8 @@ let working = false;
 
 app.whenReady().then(() => {
   win = new BrowserWindow({
-    width: 1200,
-    height: 1200,
+    width: 800,
+    height: 700,
     webPreferences: {preload: path.join(__dirname, "preload.js")}
   });
   win.loadFile('app/index.html');
@@ -37,11 +37,18 @@ ipcMain.on('proc-pick-dir', (event, arg) => {
   if (paths) {
     log('paths selected - ' + paths);
     dir = paths[0];
-    glob(path.join(dir, '**/*{/,+(.jpg|.jpeg|.JPG|.JPEG)}'), (err, res) => {
+    log('listing .jpg, .jpeg, .JPG and .JPEG images recursively...');
+    glob('**/*{/,+(.jpg|.jpeg|.JPG|.JPEG)}', {cwd: dir}, (err, res) => {
       if (err) {
         log('error listing images in dir: ' + err);
       } else {
         files = res;
+        for (let i = res.length - 1; i >= 0; i--) {
+          if (res[i].endsWith('/') || res[i].endsWith('\\')) {
+            res.splice(i, 1);
+          }
+        }
+        log(`found ${res.length} files`);
         send('proc-dir-change', {dir, fileCount: files.length});
       }
     });
@@ -112,7 +119,7 @@ ipcMain.on('proc-start', async (event, arg) => {
   working = true;
   log('starting in ' + dir);
   for (let i = 0; i < files.length; i++) {
-    const fileName = files[i];
+    const fileName = path.join(dir, files[i]);
     log(String(Math.round(i * 100 / files.length)) + '% ' + fileName);
     try {
       await processOneImage(fileName, arg);

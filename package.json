@@ -1,10 +1,10 @@
 {
   "name": "batchimageproc",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Electron app for batch image processing",
   "main": "app/main.js",
   "scripts": {
-    "start": "electron --inspect=5858 .",
+    "start": "electron .",
     "dist": "electron-builder --win portable"
   },
   "repository": {
