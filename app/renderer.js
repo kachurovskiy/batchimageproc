@@ -5,6 +5,7 @@ const logContainer = document.getElementById('logContainer');
 const resizeCheckbox = document.getElementById('resizeCheckbox');
 const resizeInput = document.getElementById('resizeInput');
 const dateTimeCheckbox = document.getElementById('dateTimeCheckbox');
+const reProcessCheckbox = document.getElementById('reProcessCheckbox');
 const invisibleContainer = document.getElementById('invisibleContainer');
 const dateTimeColor = document.getElementById('dateTimeColor');
 const dateTimeFontSizeInput = document.getElementById('dateTimeFontSizeInput');
@@ -22,7 +23,23 @@ window.api.ipcRendererOn('proc-dir-change', (event, message) => {
   }
 });
 
+if (localStorage.getItem('resizeInput')) {
+  resizeCheckbox.checked = localStorage.getItem('resizeCheckbox') == 'true';
+  resizeInput.value = localStorage.getItem('resizeInput');
+  dateTimeCheckbox.checked = localStorage.getItem('dateTimeCheckbox') == 'true';
+  dateTimeColor.value = localStorage.getItem('dateTimeColor');
+  dateTimeFontSizeInput.value = localStorage.getItem('dateTimeFontSizeInput');
+  reProcessCheckbox.checked = localStorage.getItem('reProcessCheckbox') == 'true';
+}
+
 startButton.addEventListener('click', () => {
+  localStorage.setItem('resizeCheckbox', resizeCheckbox.checked);
+  localStorage.setItem('resizeInput', resizeInput.value);
+  localStorage.setItem('dateTimeCheckbox', dateTimeCheckbox.checked);
+  localStorage.setItem('dateTimeColor', dateTimeColor.value);
+  localStorage.setItem('dateTimeFontSizeInput', dateTimeFontSizeInput.value);
+  localStorage.setItem('reProcessCheckbox', reProcessCheckbox.checked);
+  
   logArea.value = '';
   logContainer.style.display = 'block';
   window.api.ipcRendererSend('proc-start', {

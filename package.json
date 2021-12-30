@@ -1,6 +1,6 @@
 {
   "name": "batchimageproc",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Electron app for batch image processing",
   "main": "app/main.js",
   "scripts": {

@@ -82,7 +82,12 @@ async function processOneImage(fileName, arg) {
   const fileContents = readFileSync(fileName);
   const metadata = await new Promise((resolve, reject) => {
     sharp(fileContents).metadata((err, metadata) => {
-      resolve(exifReader(metadata.exif));
+      try {
+        resolve(exifReader(metadata.exif));
+      } catch (e) {
+        log('failed reading exif for ' + fileName);
+        resolve({});
+      }
     });
   });
   let i = sharp(fileContents).rotate();
@@ -113,7 +118,12 @@ async function processOneImage(fileName, arg) {
 }
 
 ipcMain.on('proc-start', async (event, arg) => {
-  if (!dir || working) {
+  if (!dir) {
+    log('no dir, can\'t start');
+    return;
+  }
+  if (working) {
+    log('already running, can\'t restart');
     return;
   }
   working = true;
