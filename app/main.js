@@ -82,6 +82,16 @@ async function processOneImage(fileName, arg) {
   const fileContents = readFileSync(fileName);
   const metadata = await new Promise((resolve, reject) => {
     sharp(fileContents).metadata((err, metadata) => {
+      if (err) {
+        log('failed reading metadata for ' + fileName);
+        resolve({});
+        return;
+      }
+      if (!metadata.exif) {
+        // Simply no exif attached.
+        resolve({});
+        return;
+      }
       try {
         resolve(exifReader(metadata.exif));
       } catch (e) {
