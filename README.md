@@ -4,7 +4,7 @@
 
 Electron app for batch image processing. Designed for a very specific purpose of resizing, baking in EXIF rotation and creation date/time - but can be easily modified to have more features.
 
-<img width="590" alt="batchimageproc" src="https://user-images.githubusercontent.com/517919/147630766-6f9e4c50-bdfa-4752-878e-30656b54aa6b.png">
+<img width="590" alt="batchimageproc" src="https://user-images.githubusercontent.com/517919/147689605-dd15efab-b0d1-4998-aca6-298468665079.png">
 
 # Developing
 
@@ -22,3 +22,5 @@ npm start
 ```
 electron-builder --win portable 
 ```
+
+Delete the created `dist` folder before making the next build or the `exe` file size will grow by including old temp files.
