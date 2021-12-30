@@ -23,4 +23,4 @@ npm start
 electron-builder --win portable 
 ```
 
-Delete the created `dist` folder before making the next build or the `exe` file size will grow by including old temp files.
+Delete the created `dist` folder and top-level `exe` file before making the next build or the `exe` file size will jump to over 100Mb.
