@@ -57,25 +57,27 @@ ipcMain.on('proc-pick-dir', (event, arg) => {
   }
 });
 
-let pngPromiseResolve, pngPromiseReject;
+let pngPromiseResolve, pngPromiseReject, pngWaiting = false;
 
 async function textToPng(text) {
+  if (pngWaiting) {
+    throw new Error("concurrent textToPng not supported");
+  }
+  pngWaiting = true;
   return new Promise((resolve, reject) => {
     pngPromiseResolve = resolve;
     pngPromiseReject = reject;
-    setTimeout(() => {
-      reject('text to png timed out')
-    }, 5000);
     send('proc-text-to-png', text);
   });
 }
 
 ipcMain.on('proc-text-as-png', (event, arg) => {
-  if (arg.buffer) {
+  if (arg && arg.buffer) {
     pngPromiseResolve(arg.buffer);
   } else {
     pngPromiseReject();
   }
+  pngWaiting = false;
 });
 
 async function processOneImage(fileName, arg) {

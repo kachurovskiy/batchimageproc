@@ -39,7 +39,7 @@ startButton.addEventListener('click', () => {
   localStorage.setItem('dateTimeColor', dateTimeColor.value);
   localStorage.setItem('dateTimeFontSizeInput', dateTimeFontSizeInput.value);
   localStorage.setItem('reProcessCheckbox', reProcessCheckbox.checked);
-  
+
   logArea.value = '';
   logContainer.style.display = 'block';
   window.api.ipcRendererSend('proc-start', {
@@ -59,19 +59,23 @@ function log(message) {
 }
 
 window.api.ipcRendererOn('proc-text-to-png', async (event, message) => {
-  const element = document.createElement('div');
-  element.style.color = dateTimeColor.value;
-  element.style.fontFamily = 'Verdana';
-  element.style.fontSize = dateTimeFontSizeInput.value + 'px';
-  element.style.textAlign = 'right';
-  element.style.padding = '6px';
-  element.innerText = String(message);
-  invisibleContainer.appendChild(element);
-  const canvas = await html2canvas(element, {backgroundColor: null});
-  element.remove();
-  canvas.toBlob(async (blob) => {
-    window.api.ipcRendererSend('proc-text-as-png', {
-      buffer: new Uint8Array(await blob.arrayBuffer()),
+  try {
+    const element = document.createElement('div');
+    element.style.color = dateTimeColor.value;
+    element.style.fontFamily = 'Verdana';
+    element.style.fontSize = dateTimeFontSizeInput.value + 'px';
+    element.style.textAlign = 'right';
+    element.style.padding = '6px';
+    element.innerText = String(message);
+    invisibleContainer.appendChild(element);
+    const canvas = await html2canvas(element, {backgroundColor: null});
+    canvas.toBlob(async (blob) => {
+      window.api.ipcRendererSend('proc-text-as-png', {
+        buffer: new Uint8Array(await blob.arrayBuffer()),
+      });
     });
-  });
+    element.remove();
+  } catch (e) {
+    window.api.ipcRendererSend('proc-text-as-png', {});
+  }
 });

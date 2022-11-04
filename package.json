@@ -1,6 +1,6 @@
 {
   "name": "batchimageproc",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Electron app for batch image processing",
   "main": "app/main.js",
   "scripts": {
@@ -20,10 +20,10 @@
   "dependencies": {
     "exif-reader": "^1.0.3",
     "glob": "^7.2.0",
-    "sharp": "^0.29.3"
+    "sharp": "^0.30.7"
   },
   "devDependencies": {
     "electron": "^16.0.5",
-    "electron-builder": "^22.14.5"
+    "electron-builder": "^23.6.0"
   }
 }
