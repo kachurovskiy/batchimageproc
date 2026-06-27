@@ -4,6 +4,8 @@ Electron app for batch JPEG processing. It can resize images, bake in EXIF rotat
 
 [Download the latest portable Windows build](https://github.com/kachurovskiy/batchimageproc/releases/latest)
 
+<img src="https://github.com/user-attachments/assets/2c3b0222-84aa-4d43-9ffd-a6dcfc7cac0a" />
+
 ## Behavior
 
 - Writes to a `batchimageproc-output` folder by default.
