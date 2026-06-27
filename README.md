@@ -1,26 +1,39 @@
 # batchimageproc
 
-[Download EXE file](https://github.com/kachurovskiy/batchimageproc/raw/main/batchimageproc%201.0.4.exe)
+Electron app for batch JPEG processing. It can resize images, bake in EXIF rotation, and add an EXIF date/time overlay.
 
-Electron app for batch image processing. Designed for a very specific purpose of resizing, baking in EXIF rotation and creation date/time - but can be easily modified to have more features.
+[Download the latest portable Windows build](https://github.com/kachurovskiy/batchimageproc/releases/latest)
 
-<img width="590" alt="batchimageproc" src="https://user-images.githubusercontent.com/517919/147689605-dd15efab-b0d1-4998-aca6-298468665079.png">
+## Behavior
 
-# Developing
+- Writes to a `batchimageproc-output` folder by default.
+- Can overwrite originals when explicitly selected.
+- Skips files already stamped by this app unless re-processing is enabled.
+- Preserves folder structure when writing to an output folder.
+- Excludes the default output folder from source scans.
 
-Make sure you have Git, Node JS and NPM installed.
+## Developing
 
-```
+Make sure Git, Node.js 22.12 or newer, and npm are installed.
+
+```sh
 git clone https://github.com/kachurovskiy/batchimageproc.git
 cd batchimageproc
 npm install
 npm start
 ```
 
-# Building EXE file
+## Testing
 
-```
-electron-builder --win portable 
+```sh
+npm test
+npm audit
 ```
 
-Delete the created `dist` folder and top-level `exe` file before making the next build or the `exe` file size will jump to over 100Mb.
+## Building
+
+```sh
+npm run dist
+```
+
+Build output is written to `dist`. Do not commit generated `.exe` files; publish them through GitHub Releases.

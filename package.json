@@ -1,10 +1,14 @@
 {
   "name": "batchimageproc",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Electron app for batch image processing",
   "main": "app/main.js",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "start": "electron .",
+    "test": "node --test",
     "dist": "electron-builder --win portable"
   },
   "repository": {
@@ -17,13 +21,27 @@
     "url": "https://github.com/kachurovskiy/batchimageproc/issues"
   },
   "homepage": "https://github.com/kachurovskiy/batchimageproc#readme",
+  "build": {
+    "appId": "com.github.kachurovskiy.batchimageproc",
+    "productName": "batchimageproc",
+    "icon": "build/icon.ico",
+    "files": [
+      "app/**/*",
+      "build/icon.ico",
+      "LICENSE",
+      "package.json"
+    ],
+    "win": {
+      "target": "portable"
+    }
+  },
   "dependencies": {
-    "exif-reader": "^1.0.3",
-    "glob": "^7.2.0",
-    "sharp": "^0.30.7"
+    "exif-reader": "^2.0.3",
+    "glob": "^13.0.6",
+    "sharp": "^0.35.2"
   },
   "devDependencies": {
-    "electron": "^16.0.5",
-    "electron-builder": "^23.6.0"
+    "electron": "^42.5.0",
+    "electron-builder": "^26.15.3"
   }
 }

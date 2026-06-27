@@ -1,154 +1,158 @@
 const {app, BrowserWindow, dialog, ipcMain} = require('electron');
 const path = require('path');
-const glob = require('glob');
-const sharp = require('sharp');
-const exifReader = require('exif-reader');
-const {readFileSync} = require('fs');
+const {
+  getDefaultOutputDir,
+  listImages,
+  normalizeOptions,
+  processBatch,
+} = require('./processor');
 
 let win;
-let dir;
-let files;
+let sourceDir;
 let working = false;
+let cancelRequested = false;
+
+function createWindow() {
+  win = new BrowserWindow({
+    width: 1120,
+    height: 820,
+    minWidth: 840,
+    minHeight: 680,
+    icon: path.join(__dirname, '..', 'build', 'icon.ico'),
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+
+  win.loadFile(path.join(__dirname, 'index.html'));
+}
 
 app.whenReady().then(() => {
-  win = new BrowserWindow({
-    width: 800,
-    height: 800,
-    webPreferences: {preload: path.join(__dirname, "preload.js")}
+  createWindow();
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+    }
   });
-  win.loadFile('app/index.html');
 });
 
 app.on('window-all-closed', () => {
-  app.quit();
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
 });
 
 function send(name, message) {
-  win.webContents.send(name, message);
+  if (win && !win.isDestroyed()) {
+    win.webContents.send(name, message);
+  }
 }
 
 function log(message) {
   send('proc-log', message);
 }
 
-ipcMain.on('proc-pick-dir', (event, arg) => {
-  log('picking directory');
-  const paths = dialog.showOpenDialogSync(win, {properties: ['openDirectory']});
-  if (paths) {
-    log('paths selected - ' + paths);
-    dir = paths[0];
-    log('listing .jpg, .jpeg, .JPG and .JPEG images recursively...');
-    glob('**/*{/,+(.jpg|.jpeg|.JPG|.JPEG)}', {cwd: dir}, (err, res) => {
-      if (err) {
-        log('error listing images in dir: ' + err);
-      } else {
-        files = res;
-        for (let i = res.length - 1; i >= 0; i--) {
-          if (res[i].endsWith('/') || res[i].endsWith('\\')) {
-            res.splice(i, 1);
-          }
-        }
-        log(`found ${res.length} files`);
-        send('proc-dir-change', {dir, fileCount: files.length});
-      }
-    });
-  } else {
-    log('nothing selected');
-  }
-});
-
-let pngPromiseResolve, pngPromiseReject, pngWaiting = false;
-
-async function textToPng(text) {
-  if (pngWaiting) {
-    throw new Error("concurrent textToPng not supported");
-  }
-  pngWaiting = true;
-  return new Promise((resolve, reject) => {
-    pngPromiseResolve = resolve;
-    pngPromiseReject = reject;
-    send('proc-text-to-png', text);
-  });
+function setState(state) {
+  send('proc-state', state);
 }
 
-ipcMain.on('proc-text-as-png', (event, arg) => {
-  if (arg && arg.buffer) {
-    pngPromiseResolve(arg.buffer);
-  } else {
-    pngPromiseReject();
-  }
-  pngWaiting = false;
-});
-
-async function processOneImage(fileName, arg) {
-  const fileContents = readFileSync(fileName);
-  const metadata = await new Promise((resolve, reject) => {
-    sharp(fileContents).metadata((err, metadata) => {
-      if (err) {
-        log('failed reading metadata for ' + fileName);
-        resolve({});
-        return;
-      }
-      if (!metadata.exif) {
-        // Simply no exif attached.
-        resolve({});
-        return;
-      }
-      try {
-        resolve(exifReader(metadata.exif));
-      } catch (e) {
-        log('failed reading exif for ' + fileName);
-        resolve({});
-      }
-    });
-  });
-  let i = sharp(fileContents).rotate();
-  if (metadata && metadata.image && metadata.image.Software == 'batchimageproc' && !arg.reProcess) {
-    log('skipping already processed file');
-    return;
-  }
-
-  if (arg.resize) {
-    i = i.resize(arg.resize, arg.resize, {fit: 'inside'});
-  }
-  if (arg.dateTime && metadata && metadata.exif && metadata.exif.DateTimeOriginal) {
-    const date = metadata.exif.DateTimeOriginal;
-    i = i.composite([
-      {
-        input: await textToPng(date.toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })),
-        gravity: 'southeast',
-      },
-    ]);
-  }
-  await i.withMetadata({
-    exif: {
-      IFD0: {
-        Software: 'batchimageproc'
-      }
-    }
-  }).toFile(fileName);
-}
-
-ipcMain.on('proc-start', async (event, arg) => {
-  if (!dir) {
-    log('no dir, can\'t start');
-    return;
-  }
+ipcMain.handle('proc-pick-dir', async () => {
   if (working) {
-    log('already running, can\'t restart');
-    return;
+    return {ok: false, error: 'Processing is running'};
   }
+
+  const result = await dialog.showOpenDialog(win, {
+    properties: ['openDirectory'],
+  });
+
+  if (result.canceled || !result.filePaths.length) {
+    log('nothing selected');
+    return {ok: false, canceled: true};
+  }
+
+  sourceDir = result.filePaths[0];
+  const outputDir = getDefaultOutputDir(sourceDir);
+  log(`selected source folder: ${sourceDir}`);
+  send('proc-scan-start', {sourceDir, outputDir});
+  log('listing JPEG images recursively...');
+
+  const files = await listImages(sourceDir, {outputDir});
+  const message = {sourceDir, outputDir, fileCount: files.length};
+  log(`found ${files.length} files`);
+  send('proc-dir-change', message);
+
+  return {ok: true, ...message};
+});
+
+ipcMain.handle('proc-pick-output-dir', async () => {
+  const result = await dialog.showOpenDialog(win, {
+    defaultPath: sourceDir || app.getPath('pictures'),
+    properties: ['openDirectory', 'createDirectory'],
+  });
+
+  if (result.canceled || !result.filePaths.length) {
+    return {ok: false, canceled: true};
+  }
+
+  return {ok: true, outputDir: result.filePaths[0]};
+});
+
+ipcMain.handle('proc-start', async (event, rawOptions) => {
+  if (!sourceDir) {
+    log('no source folder, cannot start');
+    return {ok: false, error: 'Pick a source folder first'};
+  }
+
+  if (working) {
+    log('already running, cannot restart');
+    return {ok: false, error: 'Processing is already running'};
+  }
+
   working = true;
-  log('starting in ' + dir);
-  for (let i = 0; i < files.length; i++) {
-    const fileName = path.join(dir, files[i]);
-    log(String(Math.round(i * 100 / files.length)) + '% ' + fileName);
-    try {
-      await processOneImage(fileName, arg);
-    } catch (e) {
-      log('failed: ' + e);
+  cancelRequested = false;
+  setState({working: true});
+
+  try {
+    const options = normalizeOptions(rawOptions, sourceDir);
+    log(`starting in ${sourceDir}`);
+    if (options.outputMode === 'folder') {
+      log(`writing output to ${options.outputDir}`);
+    } else {
+      log('overwriting original files');
     }
+
+    const stats = await processBatch({
+      sourceDir,
+      rawOptions: options,
+      onLog: log,
+      onProgress: (progress) => send('proc-progress', progress),
+      isCancelled: () => cancelRequested,
+    });
+
+    if (stats.cancelled) {
+      log(`cancelled: wrote ${stats.written}, skipped ${stats.skipped}, failed ${stats.failed}`);
+    } else {
+      log(`done: wrote ${stats.written}, skipped ${stats.skipped}, failed ${stats.failed}`);
+    }
+
+    return {ok: true, stats};
+  } catch (e) {
+    log(`failed: ${e.message || e}`);
+    return {ok: false, error: e.message || String(e)};
+  } finally {
+    working = false;
+    cancelRequested = false;
+    setState({working: false});
   }
-  log('100% done');
-  working = false;
+});
+
+ipcMain.on('proc-cancel', () => {
+  if (working) {
+    cancelRequested = true;
+    log('cancel requested');
+  }
 });
